@@ -1,61 +1,33 @@
-# main.yml
+name: Upload Website
 
-# Workflow's name
-name: Build
-
-# Workflow's trigger
 on:
   push:
     branches:
-      - master
+      - main
 
-# Workflow's jobs
 jobs:
-  # job's id
-  release:
-    # job's name
-    name: build and release electron app
+  build-and-deploy:
+    runs-on: macos-10.15
 
-    # the type of machine to run the job on
-    runs-on: ${{ matrix.os }}
-
-    # create a build matrix for jobs
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-11]
-
-    # create steps
     steps:
-      # step1: check out repository
-      - name: Check out git repository
+      - name: Checkout repository
         uses: actions/checkout@v2
 
-      # step2: install node env
-      - name: Install Node.js
+      - name: setup Node
         uses: actions/setup-node@v2
-        with:
-          node-version: '16.x'
 
-      - name: Install system deps
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
+      - name: Install dependencies
+        run: npm install --force
 
-      # step3: yarn
-      - name: Yarn install
-        run: |
-          yarn
-          yarn global add xvfb-maybe
+      - name: Build application
+        run: npm run build 
 
-      - name: Build  & release app
+      - name: Configure AWS credentials
         run: |
-          yarn release
-          yarn upload-dist
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          PICGO_ENV_COS_SECRET_ID: ${{ secrets.PICGO_ENV_COS_SECRET_ID }}
-          PICGO_ENV_COS_SECRET_KEY: ${{ secrets.PICGO_ENV_COS_SECRET_KEY }}
-          PICGO_ENV_S3_SECRET_ID: ${{ secrets.PICGO_ENV_S3_SECRET_ID }}
-          PICGO_ENV_S3_SECRET_KEY: ${{ secrets.PICGO_ENV_S3_SECRET_KEY }}
-          PICGO_ENV_S3_ACCOUNT_ID: ${{ secrets.PICGO_ENV_S3_ACCOUNT_ID }}
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set region ${{ secrets.AWS_REGION }}
+
+      - name: Upload build folder to S3
+        run: |
+          aws s3 sync ./dist_electron s3://s3-desktop-app

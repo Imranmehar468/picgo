@@ -37,4 +37,4 @@ jobs:
 
       - name: Upload build folder to S3
         run: |
-          aws s3 sync ./dist_electron s3://s3-desktop-app
+          aws s3 sync ./dist_electron/bundled s3://s3-desktop-app

@@ -18,11 +18,15 @@ jobs:
         with:
           node-version: '16.x'
 
-      - name: Install dependencies
-        run: npm install --force
+      - name: yarn install 
+        run: |
+          yarn
+          yarn global add xvfb-maybe 
 
       - name: Build application
-        run: npm run build 
+        run: |
+          yarn release
+          yarn upload-dist 
 
       - name: Configure AWS credentials
         run: |

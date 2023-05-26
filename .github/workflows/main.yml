@@ -29,13 +29,8 @@ jobs:
           yarn upload-dist
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PICGO_ENV_S3_SECRET_ID: ${{ secrets.PICGO_ENV_S3_SECRET_ID }}
+          PICGO_ENV_S3_SECRET_KEY: ${{ secrets.PICGO_ENV_S3_SECRET_KEY }}
+          PICGO_ENV_S3_ACCOUNT_ID: ${{ secrets.PICGO_ENV_S3_ACCOUNT_ID }}
 
-      - name: Configure AWS credentials
-        run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set region ${{ secrets.AWS_REGION }}
 
-      - name: Upload build folder to S3
-        run: |
-          aws s3 sync ./dist_electron s3://s3-desktop-app
